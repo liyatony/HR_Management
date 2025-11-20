@@ -29,73 +29,39 @@ import {
 } from "@mui/icons-material";
 import Sidebar from "../common/Sidebar";
 import Navbar from "../common/Navbar";
+import Loading from "../common/Loading";
+import Add_employee from "./Add_employee";
+import { useEffect } from "react";
+import axios from "axios";
 
 const EmployeeList = () => {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterDept, setFilterDept] = useState("all");
+  const [showAddEmployee, setShowAddEmployee] = useState(false);
 
-  const [employees, setEmployees] = useState([
-    {
-      id: 1,
-      name: "John Doe",
-      empId: "EMP001",
-      department: "Engineering",
-      position: "Senior Developer",
-      email: "john.doe@company.com",
-      phone: "+91 98765 43210",
-      joiningDate: "2022-01-15",
-      status: "Active",
-      address: "123 Tech Street, Bangalore, Karnataka",
-      salary: "₹80,000",
-      dateOfBirth: "1990-05-15",
-    },
-    {
-      id: 2,
-      name: "Priya Sharma",
-      empId: "EMP002",
-      department: "HR",
-      position: "HR Manager",
-      email: "priya.sharma@company.com",
-      phone: "+91 98765 43211",
-      joiningDate: "2021-06-20",
-      status: "Active",
-      address: "456 HR Colony, Mumbai, Maharashtra",
-      salary: "₹70,000",
-      dateOfBirth: "1988-08-22",
-    },
-    {
-      id: 3,
-      name: "Rajesh Kumar",
-      empId: "EMP003",
-      department: "Sales",
-      position: "Sales Executive",
-      email: "rajesh.kumar@company.com",
-      phone: "+91 98765 43212",
-      joiningDate: "2023-03-10",
-      status: "Active",
-      address: "789 Sales Avenue, Delhi",
-      salary: "₹60,000",
-      dateOfBirth: "1992-12-10",
-    },
-    {
-      id: 4,
-      name: "Sarah Johnson",
-      empId: "EMP004",
-      department: "Marketing",
-      position: "Marketing Lead",
-      email: "sarah.johnson@company.com",
-      phone: "+91 98765 43213",
-      joiningDate: "2022-08-05",
-      status: "Active",
-      address: "321 Marketing Road, Pune, Maharashtra",
-      salary: "₹75,000",
-      dateOfBirth: "1991-03-18",
-    },
-  ]);
+  const [employees, setEmployees] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const departments = ["Engineering", "HR", "Sales", "Marketing", "Finance"];
+  useEffect(() => {
+    axios
+      .get("http://localhost:4300/emp/")
+      .then((res) => {
+        console.log(res.data);
+        setEmployees(res.data.data);
+      })
+      .catch((err) => {
+        console.log(err);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, []);
+
+  console.log("Employees:", employees);
+
+  const departments = ["IT", "Sales", "Marketing", "Operations"];
 
   const filteredEmployees = employees.filter((emp) => {
     const matchesSearch =
@@ -184,13 +150,23 @@ const EmployeeList = () => {
             </Box>
 
             <Box sx={{ display: "flex", gap: 2 }}>
+              {/* add employee componet  using onclick avtivation  */}
+
+              <Add_employee
+                isOpen={showAddEmployee}
+                onClose={() => setShowAddEmployee(false)}
+                onSubmit={(formData) => {
+                  setShowAddEmployee(false);
+                }}
+              />
+
               <Button variant="outlined" startIcon={<FileDownload />}>
                 Export
               </Button>
               <Button
                 variant="contained"
                 startIcon={<PersonAdd />}
-                onClick={() => navigate("/employees/add")}
+                onClick={() => setShowAddEmployee(true)}
               >
                 Add Employee
               </Button>
@@ -266,7 +242,7 @@ const EmployeeList = () => {
                   margin: "0.5rem 0 0 0",
                 }}
               >
-                {employees.filter((e) => e.status === "Active").length}
+                {employees.filter((e) => e.status === true).length}
               </h3>
             </div>
 
@@ -330,22 +306,29 @@ const EmployeeList = () => {
                         sx={{ display: "flex", alignItems: "center", gap: 2 }}
                       >
                         <Avatar
+                          alt="Remy Sharp"
+                          src={`http://localhost:4300/${employee.image}`}
+                        />
+
+                        {/* <Avatar
+                         src={`http://localhost:4300/${employee.image}`}
                           sx={{
                             width: 40,
                             height: 40,
                             background:
                               "linear-gradient(135deg, #4f46e5, #7c3aed)",
                             fontWeight: 600,
+                           
                           }}
                         >
-                          {getInitials(employee.name)}
-                        </Avatar>
+                          
+                        </Avatar>  */}
                         <Typography sx={{ fontWeight: 600 }}>
                           {employee.name}
                         </Typography>
                       </Box>
                     </TableCell>
-                    <TableCell>{employee.empId}</TableCell>
+                    <TableCell>{employee._id}</TableCell>
                     <TableCell>
                       <Chip
                         label={employee.department}
@@ -364,10 +347,15 @@ const EmployeeList = () => {
                         </Typography>
                       </Box>
                     </TableCell>
-                    <TableCell>{employee.joiningDate}</TableCell>
+
+                    <TableCell>
+                      {new Date(employee.dateOfJoining).toLocaleDateString(
+                        "en-US"
+                      )}
+                    </TableCell>
                     <TableCell>
                       <Chip
-                        label={employee.status}
+                        label={employee.status ? "Active" : "Inactive"}
                         size="small"
                         color="success"
                       />
@@ -384,7 +372,7 @@ const EmployeeList = () => {
                           size="small"
                           color="primary"
                           onClick={() =>
-                            navigate(`/employees/profile/${employee.id}`, {
+                            navigate(`/employees/profile/${employee._id}`, {
                               state: { employee },
                             })
                           }
@@ -398,14 +386,17 @@ const EmployeeList = () => {
                 ))}
               </TableBody>
             </Table>
-
-            {filteredEmployees.length === 0 && (
+            {loading ? (
+              <Box sx={{ py: 8, textAlign: "center" }}>
+                <Loading  />
+              </Box>
+            ) : filteredEmployees.length === 0 ? (
               <Box sx={{ py: 8, textAlign: "center" }}>
                 <Typography color="text.secondary">
                   No employees found
                 </Typography>
               </Box>
-            )}
+            ) : null}
           </TableContainer>
         </main>
       </div>

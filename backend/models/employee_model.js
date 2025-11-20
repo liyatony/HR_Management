@@ -48,7 +48,7 @@ const employeeSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    active: {
+    status: {
       type: Boolean,
       default: true, 
     },

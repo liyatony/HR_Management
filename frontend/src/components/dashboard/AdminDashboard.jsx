@@ -15,6 +15,7 @@ import {
 } from "react-icons/fa";
 import "../../styles/dashboard.css";
 import Add_employee from "../employee/Add_employee";
+import { useNavigate } from "react-router-dom";
 
 const AdminDashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -22,6 +23,8 @@ const AdminDashboard = () => {
    const [showAddEmployee, setShowAddEmployee] = useState(false);
 
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
+
+  const navigate =useNavigate()
 
   const statsCards = [
     { title: "Total Employees", value: "124", change: "+8 this month", changeType: "positive", icon: <FaUserTie />, color: "#4f46e5", bgColor: "#eef2ff" },
@@ -158,7 +161,7 @@ const AdminDashboard = () => {
                 </div>
                 <span className="action-label">Mark Attendance</span>
               </button>
-              <button className="action-card">
+              <button className="action-card" onClick={()=>{navigate("/admin/payroll")}}>
                 <div className="action-icon" style={{ backgroundColor: '#fef2f2', color: '#dc2626' }}>
                   <FaFileInvoiceDollar />
                 </div>

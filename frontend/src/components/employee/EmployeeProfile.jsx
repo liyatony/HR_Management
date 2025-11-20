@@ -1,57 +1,113 @@
-
 import React, { useState } from "react";
-import { useNavigate, useLocation, useParams } from "react-router-dom";
+import { useNavigate, useLocation, useParams, Await } from "react-router-dom";
 import {
-  FaArrowLeft, FaEnvelope, FaPhone, FaMapMarkerAlt,
-  FaCalendar, FaBriefcase, FaIdCard, FaMoneyBillWave,
-  FaBirthdayCake, FaEdit, FaTrash
+  FaArrowLeft,
+  FaEnvelope,
+  FaPhone,
+  FaMapMarkerAlt,
+  FaCalendar,
+  FaBriefcase,
+  FaIdCard,
+  FaMoneyBillWave,
+  FaBirthdayCake,
+  FaEdit,
+  FaTrash,
+  FaPersonBooth,
+  FaImage,
 } from "react-icons/fa";
 import Sidebar from "../common/Sidebar";
 import Navbar from "../common/Navbar";
 import "../../styles/dashboard.css";
 import "../../styles/employeeprofile.css";
+import { Avatar } from "@mui/material";
+import axios, { Axios } from "axios";
 
 const EmployeeProfile = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { id } = useParams();
+  const { _id } = useParams();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [file, setFile] = useState(null);
 
   // Get employee data from navigation state
-  const [employee, setEmployee] = useState(location.state?.employee || {
-    id: id,
-    name: "Employee Name",
-    empId: "EMP00" + id,
-    department: "Department",
-    position: "Position",
-    email: "email@company.com",
-    phone: "+91 00000 00000",
-    joiningDate: "2024-01-01",
-    status: "Active",
-    address: "Address not available",
-    salary: "Not specified",
-    dateOfBirth: "1990-01-01"
-  });
+  const [employee, setEmployee] = useState(
+    location.state?.employee || {
+      id: "id",
+      name: "Employee Name",
+      department: "Department",
+      position: "Position",
+      email: "email@company.com",
+      phone: "+91 00000 00000",
+      joiningDate: "2024-01-01",
+      status: "status",
+      salary: "Not specified",
+    }
+  );
 
   const [formData, setFormData] = useState(employee);
 
   const getInitials = (name) => {
-    return name.split(' ').map(n => n[0]).join('').toUpperCase();
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase();
   };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
-  const handleSaveEdit = () => {
-    setEmployee(formData);
-    setIsEditing(false);
-    alert("Employee details updated successfully!");
+  const handlefileChange = (e) => {
+    setFile(e.target.files[0]);
+  };
+
+  const handleSaveEdit = async () => {
+    try {
+      const updatedFormdata = new FormData();
+      updatedFormdata.append("name", formData.name);
+      updatedFormdata.append("email", formData.email);
+      updatedFormdata.append("phone", formData.phone);
+      updatedFormdata.append("department", formData.department);
+      updatedFormdata.append("position", formData.position);
+      updatedFormdata.append("dateOfJoining", formData.dateOfJoining);
+      updatedFormdata.append("salary", formData.salary);
+      updatedFormdata.append("role", formData.role);
+
+      if (file) {
+        updatedFormdata.append("image", file);
+      }
+
+      // for (let [key, value] of updatedFormdata.entries()) {
+      //   console.log(key, value);
+      // }
+
+      await axios
+        .put(
+          `http://localhost:4300/emp/update/${formData._id}`,
+          updatedFormdata,
+          {
+            headers: { "Content-Type": "multipart/form-data" },
+          }
+        )
+        .then((res) => {
+          setFormData(res.data.data);
+          setEmployee(res.data.data);
+          setIsEditing(false); // move inside .then()
+          alert("Employee details updated successfully!"); // move inside .then()
+        })
+        .catch((error) => {
+          console.error("Failed to update employee:", error);
+          alert("Failed to update employee. Please try again.");
+        });
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   const handleCancelEdit = () => {
@@ -59,17 +115,34 @@ const EmployeeProfile = () => {
     setIsEditing(false);
   };
 
-  const handleDelete = () => {
-    if (window.confirm("Are you sure you want to delete this employee? This action cannot be undone.")) {
-      // Navigate back to employee list after deletion
-      navigate('/employees');
-      alert("Employee deleted successfully!");
+  const handleDelete = async () => {
+    if (
+      window.confirm(
+        "Are you sure you want to delete this employee? This action cannot be undone."
+      )
+    ) {try {
+     await  axios.delete(`http://localhost:4300/emp/delete/${employee._id}`)
+     alert("Employee deleted successfully!");
+     
+      
+    } catch (error) {
+      console.error("failed to delete employee",error)
+      
+    }
+      
+      navigate("/employees");
+      
     }
   };
 
   return (
     <div className="dashboard-wrapper">
-      {sidebarOpen && <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)}></div>}
+      {sidebarOpen && (
+        <div
+          className="sidebar-overlay"
+          onClick={() => setSidebarOpen(false)}
+        ></div>
+      )}
 
       <Sidebar
         isOpen={sidebarOpen}
@@ -85,7 +158,7 @@ const EmployeeProfile = () => {
 
         <main className="content-area">
           {/* Back Button */}
-          <button className="back-btn" onClick={() => navigate('/employees')}>
+          <button className="back-btn" onClick={() => navigate("/employees")}>
             <FaArrowLeft /> Back to Employees
           </button>
 
@@ -93,30 +166,35 @@ const EmployeeProfile = () => {
           <div className="profile-header-card">
             <div className="profile-header-content">
               <div className="profile-avatar-large">
-                {getInitials(employee.name)}
+                <Avatar
+                  alt="Remy Sharp"
+                  sx={{ width: 90, height: 90 }}
+                  src={`http://localhost:4300/${employee.image}`}
+                />
               </div>
               <div className="profile-header-info">
                 <h2 className="profile-name">{employee.name}</h2>
                 <p className="profile-position">{employee.position}</p>
                 <div className="profile-badges">
                   <span className="badge-dept">{employee.department}</span>
-                  <span className={`badge-status ${employee.status.toLowerCase()}`}>
-                    {employee.status}
+                  <span
+                    className={`badge-status ${
+                      employee.status ? "active" : "inactive"
+                    }`}
+                  >
+                    {employee.status ? "Active" : "Inactive"}
                   </span>
                 </div>
               </div>
             </div>
-            <div style={{ display: 'flex', gap: '0.75rem' }}>
-              <button 
-                className="btn-edit-profile" 
+            <div style={{ display: "flex", gap: "0.75rem" }}>
+              <button
+                className="btn-edit-profile"
                 onClick={() => setIsEditing(!isEditing)}
               >
-                <FaEdit /> {isEditing ? 'Cancel Edit' : 'Edit Profile'}
+                <FaEdit /> {isEditing ? "Cancel Edit" : "Edit Profile"}
               </button>
-              <button 
-                className="btn-delete-profile" 
-                onClick={handleDelete}
-              >
+              <button className="btn-delete-profile" onClick={handleDelete}>
                 <FaTrash /> Delete
               </button>
             </div>
@@ -128,7 +206,7 @@ const EmployeeProfile = () => {
             <div className="edit-form-container">
               <div className="profile-section">
                 <h3 className="section-title">Edit Employee Information</h3>
-                
+
                 <div className="edit-form-grid">
                   <div className="form-group">
                     <label className="form-label">
@@ -160,33 +238,6 @@ const EmployeeProfile = () => {
 
                   <div className="form-group">
                     <label className="form-label">
-                      <FaBirthdayCake /> Date of Birth
-                    </label>
-                    <input
-                      type="date"
-                      name="dateOfBirth"
-                      value={formData.dateOfBirth}
-                      onChange={handleInputChange}
-                      className="form-input"
-                    />
-                  </div>
-
-                  <div className="form-group full-width">
-                    <label className="form-label">
-                      <FaMapMarkerAlt /> Address
-                    </label>
-                    <input
-                      type="text"
-                      name="address"
-                      value={formData.address}
-                      onChange={handleInputChange}
-                      className="form-input"
-                      placeholder="Enter address"
-                    />
-                  </div>
-
-                  <div className="form-group">
-                    <label className="form-label">
                       <FaBriefcase /> Department *
                     </label>
                     <select
@@ -196,11 +247,10 @@ const EmployeeProfile = () => {
                       className="form-input"
                     >
                       <option value="">Select department</option>
-                      <option value="Engineering">Engineering</option>
-                      <option value="HR">HR</option>
+                      <option value="IT">IT</option>
                       <option value="Sales">Sales</option>
                       <option value="Marketing">Marketing</option>
-                      <option value="Finance">Finance</option>
+                      <option value="Operations">Operations</option>
                     </select>
                   </div>
 
@@ -224,11 +274,43 @@ const EmployeeProfile = () => {
                     </label>
                     <input
                       type="date"
-                      name="joiningDate"
-                      value={formData.joiningDate}
+                      name="dateOfJoining"
+                      value={new Date(formData.dateOfJoining)
+                        .toISOString()
+                        .slice(0, 10)}
                       onChange={handleInputChange}
                       className="form-input"
                     />
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label">
+                      <FaImage /> Profile picture
+                    </label>
+                    <input
+                      type="file"
+                      name="image"
+                      onChange={handlefileChange}
+                      className="form-input"
+                      placeholder="+91 00000 00000"
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">
+                      <FaIdCard />
+                      Role
+                    </label>
+                    <select
+                      name="role"
+                      value={formData.role}
+                      onChange={handleInputChange}
+                      className="form-input"
+                    >
+                      <option value="">Select Role</option>
+                      <option value="employee">Employee</option>
+                      <option value="admin">Admin</option>
+                      <option value="dpt_head">Dpt.Head</option>
+                    </select>
                   </div>
 
                   <div className="form-group">
@@ -269,19 +351,23 @@ const EmployeeProfile = () => {
                     </div>
                     <div className="info-content">
                       <span className="info-label">Employee ID</span>
-                      <span className="info-value">{employee.empId}</span>
+                      <span className="info-value">{employee._id}</span>
                     </div>
                   </div>
 
-                  <div className="info-item">
+                  {/* <div className="info-item">
                     <div className="info-icon">
                       <FaBirthdayCake />
                     </div>
                     <div className="info-content">
-                      <span className="info-label">Date of Birth</span>
-                      <span className="info-value">{employee.dateOfBirth}</span>
+                      <span className="info-label">Date of Joining</span>
+                      <span className="info-value">
+                        {new Date(employee.dateOfJoining).toLocaleDateString(
+                          "en-US"
+                        )}
+                      </span>
                     </div>
-                  </div>
+                  </div> */}
 
                   <div className="info-item">
                     <div className="info-icon">
@@ -292,6 +378,20 @@ const EmployeeProfile = () => {
                       <span className="info-value">{employee.email}</span>
                     </div>
                   </div>
+                  <div className="info-item">
+                    <div className="info-icon">
+                      <FaCalendar />
+                    </div>
+                    <div className="info-content">
+                      <span className="info-label">Joining Date</span>
+                      <span className="info-value">
+                        {" "}
+                        {new Date(employee.dateOfJoining).toLocaleDateString(
+                          "en-US"
+                        )}
+                      </span>
+                    </div>
+                  </div>
 
                   <div className="info-item">
                     <div className="info-icon">
@@ -300,16 +400,6 @@ const EmployeeProfile = () => {
                     <div className="info-content">
                       <span className="info-label">Phone</span>
                       <span className="info-value">{employee.phone}</span>
-                    </div>
-                  </div>
-
-                  <div className="info-item">
-                    <div className="info-icon">
-                      <FaMapMarkerAlt />
-                    </div>
-                    <div className="info-content">
-                      <span className="info-label">Address</span>
-                      <span className="info-value">{employee.address}</span>
                     </div>
                   </div>
                 </div>
@@ -339,15 +429,20 @@ const EmployeeProfile = () => {
                     </div>
                   </div>
 
-                  <div className="info-item">
+                  {/* <div className="info-item">
                     <div className="info-icon">
                       <FaCalendar />
                     </div>
                     <div className="info-content">
                       <span className="info-label">Joining Date</span>
-                      <span className="info-value">{employee.joiningDate}</span>
+                      <span className="info-value">
+                        {" "}
+                        {new Date(employee.dateOfJoining).toLocaleDateString(
+                          "en-US"
+                        )}
+                      </span>
                     </div>
-                  </div>
+                  </div> */}
 
                   <div className="info-item">
                     <div className="info-icon">
@@ -355,7 +450,10 @@ const EmployeeProfile = () => {
                     </div>
                     <div className="info-content">
                       <span className="info-label">Salary</span>
-                      <span className="info-value">{employee.salary}</span>
+                      <span className="info-value">
+                        <span>&#8377;</span>
+                        {employee.salary}
+                      </span>
                     </div>
                   </div>
 
@@ -365,7 +463,9 @@ const EmployeeProfile = () => {
                     </div>
                     <div className="info-content">
                       <span className="info-label">Employment Status</span>
-                      <span className="info-value">{employee.status}</span>
+                      <span className="info-value">
+                        {employee.status ? "Active" : "Inactive"}
+                      </span>
                     </div>
                   </div>
                 </div>
