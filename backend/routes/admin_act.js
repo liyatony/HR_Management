@@ -8,7 +8,7 @@ const payroll = require("../models/payroll_model");
 const bcrypt = require("bcrypt");
 const nodemailer = require("nodemailer");
 require("dotenv").config();
-const payrollEmailTemplate=require("../utils/payrollemailTemplate")
+const payrollEmailTemplate = require("../utils/payrollemailTemplate");
 
 const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
@@ -152,9 +152,6 @@ router.get("/attendance", async (req, res) => {
   }
 });
 
-
-
-
 router.post("/allmonthlypayrolls", async (req, res) => {
   try {
     const data = req.body;
@@ -166,22 +163,22 @@ router.post("/allmonthlypayrolls", async (req, res) => {
     const saved = await Promise.all(
       data.map(async (row) => {
         // Check if record already exists
-        const existing = await payroll.findOne({ 
-          empId: row.empId, 
-          month: row.month 
+        const existing = await payroll.findOne({
+          empId: row.empId,
+          month: row.month,
         });
 
         // Only create if doesn't exist
         if (!existing) {
           return payroll.create(row);
         }
-        
+
         // Return existing record without modifying it
         return existing;
       })
     );
 
-    const newCount = saved.filter(s => s.status === 'pending').length;
+    const newCount = saved.filter((s) => s.status === "pending").length;
 
     res.status(200).json({
       message: `Payroll data processed: ${newCount} new records created`,
@@ -196,8 +193,6 @@ router.post("/allmonthlypayrolls", async (req, res) => {
   }
 });
 
-
-
 router.get("/allpayrolls", async (req, res) => {
   try {
     const data = await payroll.find();
@@ -211,66 +206,79 @@ router.get("/allpayrolls", async (req, res) => {
   }
 });
 
-
-
-
 router.put("/updatepayrolls/:id", async (req, res) => {
   const id = req.params.id;
   const data = req.body;
 
-    if (!data) {
+  if (!data) {
     return res.status(400).json({ message: "No payroll data provided" });
   }
 
   try {
-    const checking =await payroll.findById(id)
-    if(checking.status==="processed"){
-      return res.status(400).json({message:"status already changed"})
-
-
+    const checking = await payroll.findById(id);
+    if (checking.status === "processed") {
+      return res.status(400).json({ message: "status already changed" });
     }
-    const updatedPayrolls = await payroll.findByIdAndUpdate(id, data, { new: true });
+    const updatedPayrolls = await payroll.findByIdAndUpdate(id, data, {
+      new: true,
+    });
 
     if (!updatedPayrolls) {
       return res.status(404).json({ message: "Payroll not found" });
     }
-    res.status(200).json({message:`${id} s payroll status updated`,updatedPayrolls:updatedPayrolls})
+    res.status(200).json({
+      message: `${id} s payroll status updated`,
+      updatedPayrolls: updatedPayrolls,
+    });
 
-    
-    const email_Employee_Details=await payroll.findById(id);
+    const email_Employee_Details = await payroll.findById(id);
 
-   const template = payrollEmailTemplate(email_Employee_Details);
-   console.log(email_Employee_Details.email);
-   
+    const template = payrollEmailTemplate(email_Employee_Details);
+    console.log(email_Employee_Details.email);
 
-     (async () => {
-      const info = await transporter.sendMail({
-        from: '"HR-SYSTEMS" <llamastone20@gmail.com>',
-        to: `${email_Employee_Details.email}`,
-        subject: "Welcome to the Team and Your Account Details",
-        html: template, // HTML body
-      }).catch((err)=>{
-        console.error("email sending failled ",err)
-
-      })
+    (async () => {
+      const info = await transporter
+        .sendMail({
+          from: '"HR-SYSTEMS" <llamastone20@gmail.com>',
+          to: `${email_Employee_Details.email}`,
+          subject: "Welcome to the Team and Your Account Details",
+          html: template, // HTML body
+        })
+        .catch((err) => {
+          console.error("email sending failled ", err);
+        });
 
       console.log("Message sent:", info.messageId);
     })();
-
-
-
-  
-
-
   } catch (error) {
-
     console.error("Error updating payroll:", error);
     res.status(500).json({ message: "Server error" });
-
-
   }
 });
 
+
+
+router.get("/attendance_records", async (req, res) => {
+  const date = req.query.date; 
+  if (!date) return res.status(400).json({ message: "date required" });
+
+  const iso = date + "T00:00:00.000Z"; 
+
+  console.log(iso);
+
+  try {
+    const data = await attendance.find({ date: iso }).populate("employeeId", " department employeeId");
+
+    console.log(data);
+    
+    res.status(200).json({
+      message: "attendance fetched",
+      data,
+    });
+  } catch (err) {
+    console.log(err);
+  }
+});
 
 
 
@@ -288,8 +296,6 @@ router.post("/add", upload.single("image"), async (req, res) => {
     const saltRounds = 10;
     const myPlaintextPassword = randomPass();
     const hash = await bcrypt.hash(myPlaintextPassword, saltRounds);
-
-    
 
     let employee_details = req.body;
 
