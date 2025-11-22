@@ -2,6 +2,8 @@ const express = require("express");
 const app = express();
 require("dotenv").config();
 const cors = require("cors");
+const leaveRoutes = require("./routes/leaveRoutes")
+
 
 
 require("./config/bd_employee");
@@ -15,6 +17,8 @@ app.use("/uploads", express.static("uploads"));
 const employee_route = require("./routes/admin_act");
 app.use("/emp", employee_route);
 
+const employeeroutes = require("./routes/employeeRoutes");
+app.use("/api", employeeroutes);
 
 
 
@@ -27,6 +31,9 @@ app.use("/attendance", attendanceRoutes);
 
 const employeeRoutes = require("./routes/admin_act");
 app.use("/emp", employeeRoutes);
+
+app.use("/api", leaveRoutes);
+
 
 const PORT = process.env.PORT || 4300;
 app.listen(PORT, () => {

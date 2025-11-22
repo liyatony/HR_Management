@@ -1,0 +1,340 @@
+
+import React, { useState } from 'react';
+import { FiHome, FiUser, FiClock, FiClipboard, FiFileText, FiDownload, FiLogOut, FiMenu, FiCalendar, FiCheckCircle, FiXCircle, FiAlertCircle } from 'react-icons/fi';
+import '../../styles/leavepage.css';
+import "../../styles/dashboard.css";
+import { useNavigate } from "react-router-dom";
+
+export default function LeaveManagementPage() {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('apply');
+  const navigate = useNavigate();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const id = localStorage.getItem("employeeId");
+  
+  const [formData, setFormData] = useState({
+    leaveType: 'casual',
+    startDate: '',
+    endDate: '',
+    reason: '',
+    employeeId: id
+  });
+
+  const leaveRequests = [
+    {
+      id: 1,
+      leaveType: 'Sick Leave',
+      startDate: '2024-01-15',
+      endDate: '2024-01-17',
+      days: 3,
+      reason: 'Medical treatment',
+      status: 'approved',
+      appliedDate: '2024-01-10'
+    },
+    {
+      id: 2,
+      leaveType: 'Casual Leave',
+      startDate: '2024-02-05',
+      endDate: '2024-02-07',
+      days: 3,
+      reason: 'Personal work',
+      status: 'pending',
+      appliedDate: '2024-01-28'
+    },
+    {
+      id: 3,
+      leaveType: 'Annual Leave',
+      startDate: '2024-03-10',
+      endDate: '2024-03-15',
+      days: 6,
+      reason: 'Family vacation',
+      status: 'rejected',
+      appliedDate: '2024-02-20'
+    }
+  ];
+
+  const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
+
+  const handleInputChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
+  };
+
+ const handleSubmit = async (e) => {
+  e.preventDefault();
+  setIsSubmitting(true);
+
+  try {
+    const response = await fetch('http://localhost:4300/api/leave/apply', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(formData)
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      alert('Leave request submitted successfully!');
+      setFormData({
+        leaveType: 'casual',
+        startDate: '',
+        endDate: '',
+        reason: ''
+      });
+    } else {
+      alert(data.message || 'Failed to submit leave request. Please try again.');
+    }
+  } catch (error) {
+    console.error('Error submitting leave request:', error);
+    alert('An error occurred while submitting your request. Please try again.');
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+
+  const getStatusIcon = (status) => {
+    switch(status) {
+      case 'approved':
+        return <FiCheckCircle className="status-icon approved" />;
+      case 'rejected':
+        return <FiXCircle className="status-icon rejected" />;
+      default:
+        return <FiAlertCircle className="status-icon pending" />;
+    }
+  };
+
+  const getStatusClass = (status) => {
+    return `status-badge ${status}`;
+  };
+
+  return (
+    <div className="dashboard-wrapper">
+      {sidebarOpen && (
+        <div className="sidebar-overlay" onClick={toggleSidebar}></div>
+      )}
+
+     {/* SIDEBAR */}
+           <aside className={`sidebar ${sidebarOpen ? "open" : ""}`}>
+             <div className="sidebar-header">
+               <div className="logo-container">
+                 <div className="logo-icon">HR</div>
+                 <h2 className="logo-text">HR System</h2>
+               </div>
+             </div>
+     
+             <nav className="sidebar-nav">
+               <div className="nav-item" onClick={() => navigate("/employee/dashboard")}>
+                 <FiHome className="nav-icon" />
+                 <span className="nav-label">Dashboard</span>
+               </div>
+     
+               <div className="nav-item active" onClick={() => navigate("/employee/profile")}>
+                 <FiUser className="nav-icon" />
+                 <span className="nav-label">View Profile</span>
+               </div>
+     
+               <div className="nav-item" onClick={() => navigate("/mark-attendance")}>
+                 <FiClock className="nav-icon" />
+                 <span className="nav-label">Mark Attendance</span>
+               </div>
+     
+               <div className="nav-item" onClick={() => navigate("/attendance-history")}>
+                 <FiClipboard className="nav-icon" />
+                 <span className="nav-label">Attendance History</span>
+               </div>
+     
+               <div className="nav-item" onClick={() => navigate("/apply-leave")}>
+                 <FiFileText className="nav-icon" />
+                 <span className="nav-label">Apply Leave</span>
+               </div>
+     
+               <div className="nav-item" onClick={() => navigate("/payslips")}>
+                 <FiDownload className="nav-icon" />
+                 <span className="nav-label">Download Payslip</span>
+               </div>
+             </nav>
+     
+             <div className="sidebar-footer">
+               <div className="nav-item logout" onClick={() => navigate("/")}>
+                 <FiLogOut className="nav-icon" />
+                 <span className="nav-label">Logout</span>
+               </div>
+             </div>
+           </aside>
+     
+      {/* MAIN CONTENT */}
+      <div className="main-wrapper">
+        <header className="top-navbar">
+          <div className="navbar-left">
+            <button className="toggle-btn" onClick={toggleSidebar}>
+              <FiMenu />
+            </button>
+
+            <div className="page-title">
+              <h1>Leave Page</h1>
+              <p className="page-subtitle">Manage your leave requests</p>
+            </div>
+          </div>
+
+          <div className="navbar-right">
+            <div className="user-profile">
+              <img
+                src="https://ui-avatars.com/api/?name=Employee&background=4f46e5&color=fff"
+                className="profile-img"
+                alt="profile"
+              />
+              <div className="profile-info">
+                <span className="profile-name">Employee</span>
+                <span className="profile-role">Employee</span>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        {/* TAB NAVIGATION */}
+        <div className="tab-navigation">
+          <button 
+            className={`tab-btn ${activeTab === 'apply' ? 'active' : ''}`}
+            onClick={() => setActiveTab('apply')}
+          >
+            <FiFileText /> Apply Leave
+          </button>
+          <button 
+            className={`tab-btn ${activeTab === 'history' ? 'active' : ''}`}
+            onClick={() => setActiveTab('history')}
+          >
+            <FiCalendar /> Leave History
+          </button>
+        </div>
+
+        <main className="content-area">
+          {activeTab === 'apply' ? (
+            <div className="leave-form-container">
+              <div className="form-card">
+                <h2 className="form-title">Apply for Leave</h2>
+                <form onSubmit={handleSubmit}>
+                  <div className="form-group">
+                    <label htmlFor="leaveType">Leave Type</label>
+                    <select
+                      id="leaveType"
+                      name="leaveType"
+                      value={formData.leaveType}
+                      onChange={handleInputChange}
+                      className="form-control"
+                      required
+                    >
+                      <option value="casual">Casual Leave</option>
+                      <option value="sick">Sick Leave</option>
+                      <option value="annual">Annual Leave</option>
+                      <option value="maternity">Maternity Leave</option>
+                      <option value="paternity">Paternity Leave</option>
+                      <option value="unpaid">Unpaid Leave</option>
+                    </select>
+                  </div>
+
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label htmlFor="startDate">Start Date</label>
+                      <input
+                        type="date"
+                        id="startDate"
+                        name="startDate"
+                        value={formData.startDate}
+                        onChange={handleInputChange}
+                        className="form-control"
+                        required
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label htmlFor="endDate">End Date</label>
+                      <input
+                        type="date"
+                        id="endDate"
+                        name="endDate"
+                        value={formData.endDate}
+                        onChange={handleInputChange}
+                        className="form-control"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="reason">Reason for Leave</label>
+                    <textarea
+                      id="reason"
+                      name="reason"
+                      value={formData.reason}
+                      onChange={handleInputChange}
+                      className="form-control"
+                      rows="4"
+                      placeholder="Please provide a reason for your leave request..."
+                      required
+                    ></textarea>
+                  </div>
+
+                 <button type="submit" className="submit-btn" disabled={isSubmitting}>
+  {isSubmitting ? 'Submitting...' : 'Submit Leave Request'}
+</button>
+                </form>
+              </div>
+
+              <div className="leave-balance-card">
+                <h3>Leave Balance</h3>
+                <div className="balance-grid">
+                  <div className="balance-item">
+                    <span className="balance-label">Casual Leave</span>
+                    <span className="balance-value">8 days</span>
+                  </div>
+                  <div className="balance-item">
+                    <span className="balance-label">Sick Leave</span>
+                    <span className="balance-value">10 days</span>
+                  </div>
+                  <div className="balance-item">
+                    <span className="balance-label">Annual Leave</span>
+                    <span className="balance-value">15 days</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="leave-history-container">
+              <h2 className="section-title">Leave Request History</h2>
+              <div className="leave-list">
+                {leaveRequests.map((request) => (
+                  <div key={request.id} className="leave-card">
+                    <div className="leave-header">
+                      <div className="leave-type-info">
+                        <FiCalendar className="calendar-icon" />
+                        <div>
+                          <h3>{request.leaveType}</h3>
+                          <p className="date-range">
+                            {request.startDate} to {request.endDate} ({request.days} days)
+                          </p>
+                        </div>
+                      </div>
+                      <div className={getStatusClass(request.status)}>
+                        {getStatusIcon(request.status)}
+                        <span>{request.status.charAt(0).toUpperCase() + request.status.slice(1)}</span>
+                      </div>
+                    </div>
+                    <div className="leave-body">
+                      <p className="leave-reason"><strong>Reason:</strong> {request.reason}</p>
+                      <p className="applied-date">Applied on: {request.appliedDate}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </main>
+      </div>
+       </div>
+  );
+}

@@ -19,7 +19,7 @@ const EmployeeDashboard = () => {
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
 
  
-  localStorage.setItem("employeeId", "6915f9ca7510fb403d0bff18");
+  localStorage.setItem("employeeId", "691482fd9bba030d9b1bc51c");
 
   return (
     <div className="dashboard-wrapper">
@@ -64,7 +64,7 @@ const EmployeeDashboard = () => {
 
           <div className="nav-item" onClick={() => navigate("/payslips")}>
             <FiDownload className="nav-icon" />
-            <span className="nav-label">Download Payslip</span>
+            <span className="nav-label">Download Paysl222ip</span>
           </div>
         </nav>
 
