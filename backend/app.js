@@ -1,11 +1,12 @@
 const express = require("express");
-const app = new express();
+const app = express();
 require("dotenv").config();
-const port = process.env.PORT;
-require("./config/bd_employee");
 const cors = require("cors");
-app.use(cors());
 
+
+require("./config/bd_employee");
+
+app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -18,12 +19,17 @@ app.use("/emp", employee_route);
 
 
 
-app.listen(port,(req,res)=>{
-  console.log(`server running on port ${port}`);
-  
 
-})
+const attendanceRoutes = require("./routes/attendanceRoutes");
+app.use("/attendance", attendanceRoutes);
 
 
 
+const employeeRoutes = require("./routes/admin_act");
+app.use("/emp", employeeRoutes);
+
+const PORT = process.env.PORT || 4300;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
 
