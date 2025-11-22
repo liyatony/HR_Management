@@ -72,10 +72,17 @@ const GeneratePayroll = ({ onClose }) => {
   useEffect(() => {
     if (employdetails.length === 0 || attendance.length === 0) return;
 
-    const merged = attendance.map((attn) => {
-      const emp = employdetails.find((e) => e._id === attn.empId);
+    // const merged = attendance.map((attn) => {
+    //   const emp = employdetails.find((e) => e._id === attn.empId);
 
-      const baseSalary = emp.salary || 0;
+    //   const baseSalary = emp.salary || 0;
+
+      const merged = attendance.map((attn) => {
+      const emp = employdetails.find((e) => String(e._id )=== attn.empId);
+
+      const baseSalary = emp?.salary || 0;
+
+
       const workingDays = DEFAULT_WORKING_DAYS;
       const presentDays = attn.presentDays || 0;
       const overtimeHours = attn.overtime || 0;
@@ -987,3 +994,6 @@ const GeneratePayroll = ({ onClose }) => {
 };
 
 export default GeneratePayroll;
+
+
+
