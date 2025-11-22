@@ -18,7 +18,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
     { id: "dashboard", label: "Dashboard", icon: <FaTachometerAlt />, path: "/dashboard" },
     { id: "employees", label: "Employees", icon: <FaUsers />, path: "/employees" },
     { id: "attendance", label: "Attendance", icon: <FaCalendarCheck />, path: "/admin/attendance" },
-    { id: "leaves", label: "Leave Management", icon: <FaClipboardList />, path: "/admin/leaves" },
+    { id: "leaves", label: "Leave Management", icon: <FaClipboardList />, path: "/admin/leave-management" },
     { id: "payroll", label: "Payroll", icon: <FaMoneyBillWave />, path: "/admin/payroll" },
     { id: "performance", label: "Performance", icon: <FaChartLine />, path: "/admin/performance" },
     { id: "settings", label: "Settings", icon: <FaCog />, path: "/admin/settings" },

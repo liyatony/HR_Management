@@ -10,6 +10,15 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+app.use("/uploads", express.static("uploads"));
+
+const employee_route = require("./routes/admin_act");
+app.use("/emp", employee_route);
+
+
+
+
+
 
 const attendanceRoutes = require("./routes/attendanceRoutes");
 app.use("/attendance", attendanceRoutes);
@@ -23,3 +32,4 @@ const PORT = process.env.PORT || 4300;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+
