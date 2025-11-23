@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { FiHome, FiUser, FiClock, FiClipboard, FiFileText, FiDownload, FiLogOut, FiMenu, FiCalendar, FiCheckCircle, FiXCircle, FiAlertCircle } from 'react-icons/fi';
 import '../../styles/leavepage.css';
 import "../../styles/dashboard.css";
@@ -10,6 +10,8 @@ export default function LeaveManagementPage() {
   const [activeTab, setActiveTab] = useState('apply');
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [leaveRequests, setLeaveRequests] = useState([]);
+
 
     const id = localStorage.getItem("employeeId");
   
@@ -21,38 +23,38 @@ export default function LeaveManagementPage() {
     employeeId: id
   });
 
-  const leaveRequests = [
-    {
-      id: 1,
-      leaveType: 'Sick Leave',
-      startDate: '2024-01-15',
-      endDate: '2024-01-17',
-      days: 3,
-      reason: 'Medical treatment',
-      status: 'approved',
-      appliedDate: '2024-01-10'
-    },
-    {
-      id: 2,
-      leaveType: 'Casual Leave',
-      startDate: '2024-02-05',
-      endDate: '2024-02-07',
-      days: 3,
-      reason: 'Personal work',
-      status: 'pending',
-      appliedDate: '2024-01-28'
-    },
-    {
-      id: 3,
-      leaveType: 'Annual Leave',
-      startDate: '2024-03-10',
-      endDate: '2024-03-15',
-      days: 6,
-      reason: 'Family vacation',
-      status: 'rejected',
-      appliedDate: '2024-02-20'
-    }
-  ];
+  // const leaveRequests = [
+  //   {
+  //     id: 1,
+  //     leaveType: 'Sick Leave',
+  //     startDate: '2024-01-15',
+  //     endDate: '2024-01-17',
+  //     days: 3,
+  //     reason: 'Medical treatment',
+  //     status: 'approved',
+  //     appliedDate: '2024-01-10'
+  //   },
+  //   {
+  //     id: 2,
+  //     leaveType: 'Casual Leave',
+  //     startDate: '2024-02-05',
+  //     endDate: '2024-02-07',
+  //     days: 3,
+  //     reason: 'Personal work',
+  //     status: 'pending',
+  //     appliedDate: '2024-01-28'
+  //   },
+  //   {
+  //     id: 3,
+  //     leaveType: 'Annual Leave',
+  //     startDate: '2024-03-10',
+  //     endDate: '2024-03-15',
+  //     days: 6,
+  //     reason: 'Family vacation',
+  //     status: 'rejected',
+  //     appliedDate: '2024-02-20'
+  //   }
+  // ];
 
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
 
@@ -111,6 +113,29 @@ export default function LeaveManagementPage() {
   const getStatusClass = (status) => {
     return `status-badge ${status}`;
   };
+
+    useEffect(() => {
+    if (!id) {
+      console.error("No employee ID found in localStorage");
+      return;
+    }
+
+   fetch("http://localhost:4300/api/leave/history", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ employeeId: id }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        setLeaveRequests(data?.data);
+      })
+      .catch((err) => console.error("Error fetching leave history:", err));
+
+  }, [id]);
+
+  
 
   return (
     <div className="dashboard-wrapper">
@@ -314,9 +339,10 @@ export default function LeaveManagementPage() {
                         <FiCalendar className="calendar-icon" />
                         <div>
                           <h3>{request.leaveType}</h3>
-                          <p className="date-range">
-                            {request.startDate} to {request.endDate} ({request.days} days)
-                          </p>
+                            <p className="date-range">
+                                  {new Date(request.startDate).toLocaleDateString()} to{" "}
+                                  {new Date(request.endDate).toLocaleDateString()} ({request.days} days)
+                            </p>
                         </div>
                       </div>
                       <div className={getStatusClass(request.status)}>
@@ -326,7 +352,7 @@ export default function LeaveManagementPage() {
                     </div>
                     <div className="leave-body">
                       <p className="leave-reason"><strong>Reason:</strong> {request.reason}</p>
-                      <p className="applied-date">Applied on: {request.appliedDate}</p>
+                      <p className="applied-date">Applied on: {new Date(request.appliedDate).toLocaleDateString()}</p>
                     </div>
                   </div>
                 ))}

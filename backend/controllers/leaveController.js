@@ -92,7 +92,7 @@ exports.createLeaveRequest = async (req, res) => {
 // @access  Private (Employee)
 exports.getEmployeeLeaveRequests = async (req, res) => {
   try {
-    const { employeeId } = req.params;
+    const { employeeId } = req.body;
 
     // Check if employee exists
     const employee = await Employee.findById(employeeId);

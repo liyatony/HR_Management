@@ -265,6 +265,35 @@ const ViewProfile = () => {
         </div>
       </aside>
 
+       {/* MAIN CONTENT */}
+            <div className="main-wrapper">
+              <header className="top-navbar">
+                <div className="navbar-left">
+                  <button className="toggle-btn" onClick={toggleSidebar}>
+                    <FiMenu />
+                  </button>
+      
+                  <div className="page-title">
+                    <h1>Your Profile</h1>
+                    {/* <p className="page-subtitle">Your Profile</p> */}
+                  </div>
+                </div>
+      
+                <div className="navbar-right">
+                  <div className="user-profile">
+                    <img
+                      src="https://ui-avatars.com/api/?name=Employee&background=4f46e5&color=fff"
+                      className="profile-img"
+                      alt="profile"
+                    />
+                    <div className="profile-info">
+                      <span className="profile-name">Employee Dashboard</span>
+                      <span className="profile-role">Employee</span>
+                    </div>
+                  </div>
+                </div>
+              </header>
+
       {/* PROFILE CONTENT */}
    <div className="vp-container">
 
@@ -337,6 +366,8 @@ const ViewProfile = () => {
 </div>
 
     </div>
+    </div>
+    
   );
 };
 
