@@ -3,8 +3,7 @@ const app = express();
 require("dotenv").config();
 const cors = require("cors");
 const leaveRoutes = require("./routes/leaveRoutes")
-
-
+const payrollRoutes = require("./routes/payrollRoutes")
 
 require("./config/bd_employee");
 
@@ -33,6 +32,7 @@ const employeeRoutes = require("./routes/admin_act");
 app.use("/emp", employeeRoutes);
 
 app.use("/api", leaveRoutes);
+app.use("/api", payrollRoutes);
 
 
 const PORT = process.env.PORT || 4300;
